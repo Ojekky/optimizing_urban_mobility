@@ -1,0 +1,57 @@
+id: wdc_bike_data_gcp
+namespace: project2
+
+description: |
+  Best to add a label `backfill:true` from the UI to track executions created via a backfill.
+  CSV data used here comes from: https://s3.amazonaws.com/capitalbikeshare-data/201801-capitalbikeshare-tripdata.zip
+
+variables:
+  file: "{{trigger.date | date('yyyyMM')}}-capitalbikeshare-tripdata"
+  file1: "{{trigger.date | date('yyyyMM')}}"
+  gcs_file: "gs://{{kv('GCP_BUCKET_NAME')}}/{{vars.file}}"
+  source_url: "https://s3.amazonaws.com/capitalbikeshare-data/{{vars.file}}.zip"
+
+tasks:
+  - id: set_label
+    type: io.kestra.plugin.core.execution.Labels
+    labels:
+      file: "{{render(vars.file)}}"
+
+  - id: debug_vars
+    type: io.kestra.core.tasks.log.Log
+    message: |
+      File: {{render(vars.file)}}
+      Source URL: {{render(vars.source_url)}}
+      GCS Path: {{render(vars.gcs_file)}}
+
+  - id: download_file
+    type: io.kestra.plugin.core.http.Download
+    uri: "{{render(vars.source_url)}}"
+
+  - id: unzip
+    type: io.kestra.plugin.compress.ArchiveDecompress
+    algorithm: ZIP
+    from: "{{outputs.download_file.uri}}"
+
+  - id: upload_to_gcs
+    type: io.kestra.plugin.gcp.gcs.Upload
+    from: "{{outputs.unzip.files[render(vars.file1) ~ '-capitalbikeshare-tripdata.csv']}}"
+    to: "gs://global-rookery-448215-m8_bike_data_raw/capitalbikeshare/{{trigger.date | date('yyyy')}}/{{trigger.date | date('yyyyMM')}}-capitalbikeshare-tripdata.csv"
+
+  - id: purge_files
+    type: io.kestra.plugin.core.storage.PurgeCurrentExecutionFiles
+    description: To avoid cluttering your storage, we will remove the downloaded files
+
+pluginDefaults:
+  - type: io.kestra.plugin.gcp
+    values:
+      serviceAccount: "{{kv('GCP_CREDS')}}"
+      projectId: "{{kv('GCP_PROJECT_ID')}}"
+      location: "{{kv('GCP_LOCATION')}}"
+      bucket: "{{kv('GCP_BUCKET_NAME')}}"
+
+triggers:
+  # Monthly schedule for new data
+  - id: monthly_schedule
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 9 1 * *"  # Runs at 9AM on the 1st of each month
