@@ -40,8 +40,84 @@ The primary objective of this project is to build an end-to-end Data Engineering
     - Trip distance and duration distribution
     - Popular routes and geo-mapped station activity
 
+## 🏗️ Architecture and Highlights
+![image](https://github.com/user-attachments/assets/90673fce-a7b8-4d43-8222-2bb440a81d8a)
+
+# Terraform (Set Up)
+##📌 Overview
+This document outlines the Infrastructure as Code (IaC) approach using Terraform to provision and manage the cloud infrastructure required for the Capital Bikeshare Data Pipeline on Google Cloud Platform (GCP).
+
+## Setup
+### 🛠️ Prerequisites
+- [Terraform](https://developer.hashicorp.com/terraform/downloads)
+- [VScode](https://code.visualstudio.com/download) 
+- A GCP Service Account with the required permissions
+
+Used steps in [DE-Zoomcamp](https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/01-docker-terraform/README.md)
+## :movie_camera: Introduction Terraform: Concepts and Overview, a primer
+
+[![](https://markdown-videos-api.jorgenkh.no/youtube/s2bOYDCKl_M)](https://youtu.be/s2bOYDCKl_M&list=PL3MmuxUbc_hJed7dXYoJw8DoCuVHhGEQb&index=11)
+
+* [Companion Notes](1_terraform_gcp)
+
+## :movie_camera: Terraform Basics: Simple one file Terraform Deployment
+
+[![](https://markdown-videos-api.jorgenkh.no/youtube/Y2ux7gq3Z0o)](https://youtu.be/Y2ux7gq3Z0o&list=PL3MmuxUbc_hJed7dXYoJw8DoCuVHhGEQb&index=12)
+
+* [Companion Notes](1_terraform_gcp)
+
+## :movie_camera: Deployment with a Variables File
+
+[![](https://markdown-videos-api.jorgenkh.no/youtube/PBi0hHjLftk)](https://youtu.be/PBi0hHjLftk&list=PL3MmuxUbc_hJed7dXYoJw8DoCuVHhGEQb&index=13)
+
+* [Companion Notes](1_terraform_gcp) 
+
+### 🚀 Deploying Infrastructure
+```bash
+terraform init.
+terraform applty
+```
+
+## 🔄 Ingestion with Kestra
+In this project, Kestra is used as the workflow orchestration tool to automate and manage the ingestion of raw Capital Bikeshare trip data from external sources into Google Cloud Storage (GCS). Kestra workflows ensure reliable, scheduled, and traceable data ingestion pipelines.
+
+### 🛠️ Prerequisites
+- [Docker](https://www.docker.com/products/docker-desktop/) & [Docker Compose](https://docs.docker.com/compose/install/)
+- [Install Kestra on GCP Virtual machine with ​Cloud ​S​Q​L and ​G​C​S(Linked terraform bucket and dataset)](https://kestra.io/docs/installation/gcp-vm) 
+- A GCP Service Account with the required permissions
+
+### 📌 Start Kestra
+Run the following command to start Kestra using Docker Compose:
+
+```bash
+docker-compose up -d
+```
+After Kestra UI is loaded, we can run two following flows:
+
+### 🔑 set_kv: Configures Environment Variables
+
+The flow ([set_kv.yaml](Kestra/set_kv.yaml)) configure the following project variables:
+- `gcp_project_id`
+- `gcp_location`
+- `gcp_bucket_name`
+
+### ⚡ data_load_gcs: Fetches data, saves as CSV, and uploads to GCS
+
+The [data_load_gcs.yaml](Kestra/data_load_gcs.yaml) flow orchestrates the entire ingestion pipeline:
+
+- Fetches data from the FRED API in Python and saves as CSV files
+- Uploads the CSVs to the specified GCS bucket.
+- Purges temporary files to keep the workflow clean.
+
+🔑 Note that the service account creds is configured using a [secret](https://kestra.io/docs/how-to-guides/google-credentials) and the FRED API Key was set through the KV Store.
 
 ![Using LockerStudio ](image.png)
 ![2](image-1.png)
 ![3](image-2.png)
 ![4](image-3.png)
+
+
+
+
+
+This project is created as part of the [Data Engineering Zoomcamp 2025 course](https://github.com/DataTalksClub/data-engineering-zoomcamp). Special thanks to [DataTalkClub](https://github.com/DataTalksClub) for the learning opportunity.
