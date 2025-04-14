@@ -94,7 +94,7 @@ docker-compose up -d
 ```
 After Kestra UI is loaded, we can run two following flows:
 
-### 🔑 set_kv: Configures Environment Variables
+### 🔑 Configures Environment Variables
 
 The flow ([WDC_bike_gcp_kv.yaml](kestra/workflow/WDC_bike_gcp_kv.yaml)) configure the following project variables:
 - `gcp_project_id`
@@ -110,6 +110,53 @@ The [wdc_bike_data_gcp.yaml](kestra/workflow/wdc_bike_data_gcp.yaml) flow orches
 - Purges temporary files to keep the workflow clean.
 
 
+##📄 Data Processing with Apache Spark
+Apache Spark was used in this project to process, clean, and convert raw trip data from CSV format into optimized Parquet files, stored in Google Cloud Storage (GCS).
+
+### How to install.
+Use the steps provided in link [DE-Zoomcamp 2025 cource](https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/05-batch/README.md) as seen below
+
+## 5.2 Installation
+
+Follow [these instructions](setup/) to install Spark:
+
+* [Windows](setup/windows.md)
+* [Linux](setup/linux.md)
+* [MacOS](setup/macos.md)
+
+And follow [this](setup/pyspark.md) to run PySpark in Jupyter
+
+* :movie_camera: 5.2.1 (Optional) Installing Spark (Linux)
+
+[![](https://markdown-videos-api.jorgenkh.no/youtube/hqUbB9c8sKg)](https://youtu.be/hqUbB9c8sKg&list=PL3MmuxUbc_hJed7dXYoJw8DoCuVHhGEQb&index=53)
+
+### combining similar csv together.
+I used [bike_schema](Spark/notebook/bike_schema.ipynb) to create and edit the schema before moving them temporarily to the GCS Bucket.
+
+### Adding and renaming the full dataset
+For the python script [Rename_bike_colunms.ipynb](Spark/notebook/Rename_bike_colunms.ipynb)
+Load pre-processed Parquet files (old and recent datasets) from GCS.
+Rename columns in the older dataset (2010–early 2020) to align with the newer schema.
+Add missing columns to both datasets where applicable.
+Calculate trip durations in the newer dataset.
+Union both datasets into a single combined DataFrame.
+Write the final consolidated dataset back to GCS as Parquet.
+
+## Data Storage & Transformation in BigQuery
+This BigQuery module handled loading, structuring, and transforming consolidated trip data for analytical querying. 
+
+### Created partitioned and clustered table using BigQuery.
+View the table created in SQLQuery in [create_table_pat_clus.sql](biguery/create_table_pat_clus.sql) Also, the final table to be used for the analysis in [create_full_colunms.sql](bigquery/create_full_colunms.sql)
+Finally, transformed and enriched the trip data into a clean, analysis-ready table with additional derived columns:
+Temporal breakdowns (trip date, year, month, hour, weekday/weekend).
+Trip distance (geodesic calculation via ST_DISTANCE).
+Trip distance categories.
+Trip duration categories.
+Round trip indicator.
+Route identifier.
+
+## Data Visualization with Looker Studio
+To enable intuitive, interactive data exploration and storytelling, I connected the processed and enriched BigQuery analytics table to Looker Studio (formerly Google Data Studio). This visualization layer provides insights into trip patterns, member behaviors, and operational trends across the Capital Bikeshare network.
 
 ![Using LockerStudio ](image.png)
 ![2](image-1.png)
