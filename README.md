@@ -96,20 +96,20 @@ After Kestra UI is loaded, we can run two following flows:
 
 ### 🔑 set_kv: Configures Environment Variables
 
-The flow ([set_kv.yaml](Kestra/set_kv.yaml)) configure the following project variables:
+The flow ([WDC_bike_gcp_kv.yaml](kestra/workflow/WDC_bike_gcp_kv.yaml)) configure the following project variables:
 - `gcp_project_id`
 - `gcp_location`
 - `gcp_bucket_name`
 
 ### ⚡ data_load_gcs: Fetches data, saves as CSV, and uploads to GCS
 
-The [data_load_gcs.yaml](Kestra/data_load_gcs.yaml) flow orchestrates the entire ingestion pipeline:
+The [wdc_bike_data_gcp.yaml](kestra/workflow/wdc_bike_data_gcp.yaml) flow orchestrates the entire ingestion pipeline:
 
-- Fetches data from the FRED API in Python and saves as CSV files
+- Fetches data from the [Capitalbike Share history data](https://s3.amazonaws.com/capitalbikeshare-data/index.html) in Zip files, then extract it to CSV files.
 - Uploads the CSVs to the specified GCS bucket.
 - Purges temporary files to keep the workflow clean.
 
-🔑 Note that the service account creds is configured using a [secret](https://kestra.io/docs/how-to-guides/google-credentials) and the FRED API Key was set through the KV Store.
+
 
 ![Using LockerStudio ](image.png)
 ![2](image-1.png)
